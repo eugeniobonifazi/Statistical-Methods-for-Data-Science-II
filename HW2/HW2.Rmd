@@ -1,0 +1,753 @@
+---
+title: 'Homework #2'
+output: html_document
+editor_options: 
+  chunk_output_type: inline
+---
+
+
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+```{r, message=FALSE, warning=FALSE, echo=FALSE}
+library(msm)
+library(expm)
+library(invgamma)
+```
+
+
+## Your Last+First Name __BONIFAZI__EUGENIO__ Your Matricola __1540750__
+
+## Ex 1)
+
+#### a)  Illustrate the characteristics of the statistical model for dealing with the *Dugong*'s data. Lengths ($Y_i$)  and  ages ($x_i$) of  27 dugongs ([see cows](https://en.wikipedia.org/wiki/Dugong)) captured off the coast of Queensland have been recorded and the
+  following (non linear)  regression model is considered in [Carlin and Gelfand (1991)](http://people.ee.duke.edu/~lcarin/Gelfand91.pdf):
+\begin{eqnarray*}
+Y_i &\sim& N(\mu_i, \tau^2) \\
+\mu_i=f(x_i)&=& \alpha - \beta \gamma^{x_i}\\
+\end{eqnarray*}
+Model parameters are
+$\alpha \in (1, \infty)$,
+$\beta \in (1, \infty)$,
+$\gamma \in (0,1)$,
+$\tau^2 \in (0,\infty)$. 
+Let us consider the following prior distributions:
+\begin{eqnarray*}
+\alpha &\sim&  N(0,\sigma^2_{\alpha})\\
+\beta  &\sim&  N(0,\sigma^2_{\beta}) \\
+\gamma &\sim&  Unif(0,1)\\
+\tau^2 &\sim&  IG(a,b)) (Inverse Gamma)
+\end{eqnarray*}
+
+
+#### b)  Derive the corresponding likelihood function
+
+\begin{eqnarray}
+L(Y|\alpha, \beta ,\gamma ,\tau^2, X) &=& \prod_{i=1}^n \frac{1}{\sqrt{2\pi\tau^2}}exp\Bigg\{-\frac{(y_i-\mu_i)^2}{2\tau^2} \Bigg\} I_{(1, \infty)}(\alpha)I_{(1, \infty)}(\beta)I_{(0,1)}(\gamma)I_{(0, \infty)}(\tau^2)\\
+
+&=& \Bigg( \frac{1}{\sqrt{2\pi\tau^2}}\Bigg)^nexp\Bigg\{ -\frac{1}{2\tau^2}\sum_{i=1}^n(y_i-\mu_i)^2\Bigg\} I_{(1, \infty)}(\alpha)I_{(1, \infty)}(\beta)I_{(0,1)}(\gamma)I_{(0, \infty)}(\tau^2)\\
+
+&=& \Bigg( \frac{1}{\sqrt{2\pi\tau^2}}\Bigg)^nexp\Bigg\{ -\frac{1}{2\tau^2}\sum_{i=1}^n(y_i-\alpha+\beta\gamma^{x_i})^2\Bigg\} I_{(1, \infty)}(\alpha)I_{(1, \infty)}(\beta)I_{(0,1)}(\gamma)I_{(0, \infty)}(\tau^2)\\
+
+\end{eqnarray}
+
+
+
+#### c)  Write down the expression of the joint prior distribution of the parameters at stake and illustrate your suitable choice for the hyperparameters.
+
+In order to compute the joint prior distribution we need to compute at first the prior of each parameter:
+
+$\alpha$ prior:
+
+\begin{eqnarray}
+\pi(\alpha) = \frac{1}{\sqrt{2\pi\sigma^2_{\alpha}}}exp \Bigg\{ -\frac{\alpha^2}{2\sigma^2_{\alpha}}\Bigg\}I_{(1, \infty)}(\alpha) \propto exp \Bigg\{ -\frac{\alpha^2}{2\sigma^2_{\alpha}}\Bigg\}I_{(1, \infty)}(\alpha) 
+\end{eqnarray}
+
+$\beta$ prior:
+
+\begin{eqnarray}
+\pi(\beta) = \frac{1}{\sqrt{2\pi\sigma^2_{\beta}}}exp \Bigg\{ -\frac{\beta^2}{2\sigma^2_{\beta}}\Bigg\}I_{(1, \infty)}(\beta) \propto exp \Bigg\{ -\frac{\beta^2}{2\sigma^2_{\beta}}\Bigg\}I_{(1, \infty)}(\beta) 
+\end{eqnarray}
+
+$\gamma$ prior:
+
+\begin{eqnarray}
+\pi(\gamma)  = I_{(0,1)}(\gamma)
+\end{eqnarray}
+
+$\tau^2$ prior:
+
+\begin{eqnarray}
+\pi(\tau^2) = \frac{b^a}{\Gamma(a)}\tau^{2^{(-a-1)}}exp\Bigg\{ -\frac{b}{\tau^2}\Bigg\}I_{(0, \infty)}(\tau^2) \propto \tau^{2^{(-a-1)}}exp\Bigg\{ -\frac{b}{\tau^2}\Bigg\}I_{(0, \infty)}(\tau^2)
+\end{eqnarray}
+
+
+Finally we can compute the joint prior distribution of the parameters:
+
+
+\begin{eqnarray}
+\pi(\alpha, \beta, \gamma, \tau^2) &=&
+
+\frac{1}{\sqrt{2\pi\sigma^2_{\alpha}}}exp \Bigg\{ -\frac{\alpha^2}{2\sigma^2_{\alpha}}\Bigg\}I_{(1, \infty)}(\alpha)
+
+\frac{1}{\sqrt{2\pi\sigma^2_{\beta}}}exp \Bigg\{ -\frac{\beta^2}{2\sigma^2_{\beta}}\Bigg\}I_{(1, \infty)}(\beta)
+
+I_{(0,1)}(\gamma)
+
+\frac{b^a}{\Gamma(a)}\tau^{2^{(-a-1)}}exp\Bigg\{ -\frac{b}{\tau^2}\Bigg\}I_{(0, \infty)}(\tau^2) \\
+
+&\propto&  exp\Bigg\{ -\frac{\alpha^2}{2\sigma^2_{\alpha}}\Bigg\} exp \Bigg\{ -\frac{\beta^2}{2\sigma^2_{\beta}}\Bigg\} I_{(0,1)}(\gamma) \tau^{2^{(-a-1)}}exp\Bigg\{ -\frac{b}{\tau^2}\Bigg\} 
+
+
+\end{eqnarray}
+
+
+Our suitable choice for the hyperparameters is the following:
+
+
+\begin{eqnarray}
+&\sigma_{\alpha}& = 10000 \\
+&\sigma_{\beta}& = 10000 \\
+&a& = 0.001 \\
+&b& = 0.001 \\
+\end{eqnarray}
+
+#### d)  Compute \underline{numerically}  the maximum likelihood estimate for the vector of parameters of interest $(\alpha , \beta , \gamma , \tau^2)$ and compare it with the Maximum-a-Posterori estimate
+
+
+
+```{r, warning=FALSE, message=FALSE}
+
+# let's take a look to our dataset 
+
+df=read.csv("dugong-data.txt",sep="")
+
+#names(df)
+
+x = df$Age
+y = df$Length
+
+plot(x,y, xlab = "Age", ylab = "Length", main = "Data scatter plot")
+
+
+# MAXIMUM LIKELIHOOD ESTIMATE
+
+# initial values (chosen almost at random)
+
+init_parameters = c(1, 1, 0.5, 1)
+
+likelihood <- function(init_parameters){
+  
+  alpha = init_parameters[1]
+  beta = init_parameters[2]
+  gamma = init_parameters[3]
+  tau_squared = init_parameters[4]
+  mu = alpha - beta*(gamma^(x))
+  return(sum(dnorm(y, mu, tau_squared, log = TRUE)))
+  
+}
+
+MLE = optim(init_parameters, likelihood, control = list(fnscale=-1))$par
+cat('Maximum log-likelihood estimation: ', round(MLE, 4))
+
+
+# MAXIMUM-A-POSTERIORI ESTIMATE
+
+# at first the priors distribution
+
+prior_alpha = function(alpha) (dtnorm(alpha, mean= 0, sd = 10000, lower = 1, upper = Inf)) 
+prior_beta = function(beta) (dtnorm(beta, mean= 0, sd = 10000, lower = 1, upper = Inf)) 
+prior_gamma = function(gamma) (dunif(gamma))
+prior_tau = function(tau,a,b) (dinvgamma(tau, 0.001, 0.001))
+
+
+
+log_posterior = function(init_parameters){
+  alpha = init_parameters[1]
+  beta = init_parameters[2]
+  gamma = init_parameters[3]
+  tau = init_parameters[4]
+  log_joint_prior = log(prior_alpha(alpha)) + log(prior_beta(beta)) + log(prior_gamma(gamma)) + log(prior_tau(tau))
+out = likelihood(init_parameters) + log_joint_prior
+return(out)
+}
+
+MAP = optim(par = init_parameters, log_posterior, control = list(fnscale=-1))$par
+cat('Maximum-a-posteriori estimation: ', round(MAP, 4))
+
+```
+
+
+```{r}
+
+par(mfrow=c(1,2))
+plot(x,y, xlab = "Age", ylab = "Length", main = "Non linear regression via MLE")
+lines(x, MLE[1]-MLE[2]*MLE[3]^x, type = "l", col = "red", lwd = 2)
+
+plot(x,y, xlab = "Age", ylab = "Length", main = "Non linear regression via MAP")
+lines(x, MAP[1]-MAP[2]*MAP[3]^x, type = "l", col = "blue", lwd = 2)
+
+```
+
+As we can see from both numerical and graphical results we reach very close estimated values in the two different ways of estimation except for the decreasing increment of the MAP non linear regression respect to the one of the maximum likelihood estimation.
+
+\newpage
+
+
+## Ex 2)
+
+Let us consider a Markov chain $(X_t)_{t \geq 0}$ defined on the state space ${\cal S}=\{1,2,3\}$ with the following transition 
+
+
+
+\begin{center} 
+\includegraphics[width=6cm]{frog.pdf} 
+\end{center}
+
+
+
+#### a)  Starting at time $t=0$ in the state  $X_0=1$ simulate the Markov chain with distribution assigned as above for $t=1000$ consecutive times
+
+
+```{r}
+
+set.seed(123)
+S= c(1, 2, 3)
+mpt <- matrix(c(0, 1/2, 1/2, 5/8, 1/8, 1/4, 2/3, 1/3, 0),nrow=3,byrow=T)
+x1 <- 1 ## starting value of the chain
+
+chain_sim <- function(nsample, S, x1, mpt){
+
+chain <- rep(NA,nsample + 1) # vector that will hold all the simulates values
+
+chain[1] <- x1             # starting value x1 assigned to chain[1]
+
+for(t in 1:nsample){
+  chain[t+1]<-sample(S,size=1,prob=mpt[chain[t],])
+}
+return(chain)
+}
+
+chain_a = chain_sim(1000, S, x1, mpt)
+
+head(chain_a, 20)
+
+plot(chain_a,ylim=c(0,4))
+
+```
+
+
+#### b)  compute the empirical relative frequency of the three states in your simulation
+
+```{r}
+
+rel_freq = round(table(chain_a)/(1000 + 1), 4)
+rel_freq
+
+```
+
+#### c)  repeat the simulation for 500 times and record only the final state at time $t=1000$ for each of the 500 simulated chains. Compute the relative frequency of the 500 final states. What distribution are you approximating in this way? Try to formalize the difference between this point and the previous point. 
+
+#### d)  compute the theoretical stationary distribution $\pi$ and explain how you have obtained it
+
+#### e)  is it well approximated by the simulated empirical relative frequencies computed in (b) and (c)?
+(all the answers below)
+```{r}
+
+sim = 500
+
+t_1000 = rep(NA, 500)
+
+for (i in 1:sim){
+
+  chain_a = chain_sim(1000, S, x1, mpt)
+  t_1000[i] = chain_a[1001]
+  
+}
+
+t_1000_rel_freq = table(t_1000)/sim
+
+cat('relative frequency of the 500 final states(for 1, 2 and 3): ', table(t_1000)/sim)
+
+
+
+histo = rbind(rel_freq, t_1000_rel_freq)
+
+barplot(histo, col = c("deepskyblue1", "dodgerblue4"), main = expression('Relative frequencies of MC and '*'X'[1000]), beside = T , ylim = c(0, 0.5), names.arg=c("S = 1", "S = 2", "S = 3"), legend = c("MC",expression('X'[1000])))
+
+```
+
+By taking only the last observation at time $t=1000$ for each simulated chain the result that we have is not a Markov Chain since the value $X_t$ does not depend on the previous $X_{t-1}$. The distribution in this case is the following:
+\[ P_{x_0}(X_t \in A)=K^t(x_0,A)=\int_{S}K(y, A)K^{t-1}(x_0, dy)\]
+
+Anyway, for a large enough number of simulation and if we are also in the case in which the Markov Chain reached the stationarity point at time $t$ ($t=1000$ in our case), this distribution could be a good approximation of the MC itself. 
+If we take a look to the transition matrixes below we notice that there is no improvement between $50^{th}$ and the $1000^{th}$ times and, moreover, all the rows have the same value; this means that these (by rows) are the "true" probability values of the MC. 
+
+
+```{r}
+converged_kernel1000 = mpt %^% 1000
+converged_kernel1000
+
+converged_kernel50 = mpt %^% 50
+converged_kernel50
+
+cat('converging probability values: ',round(converged_kernel50[1,], 4))
+
+```
+
+We see that the MC simulation at point still does not reach the converging values, and this also explains why the other distribution is even farther from these values. Increasing the number of iterations we see that the MC is more and more close to the converging probability values, that means that it's fluttuationg around them with decreasing variability.
+
+```{r}
+
+tt = c(10000, 100000, 1000000) 
+
+for (i in tt){
+chain_a = chain_sim(i, S, x1, mpt)
+rel_freq = round(table(chain_a)/(i + 1), 4)
+
+print(rel_freq)
+}
+
+
+```
+
+
+
+  
+#### f)  what happens if we start at $t=0$ from state $X_0=2$ instead of  $X_0=1$?
+
+The ergodic properties of MC will ensure that will be no difference starting from any other state, so we don???t care if we start at t=0 from state $X_0=2$ instead of $X_0=1$.
+
+```{r}
+
+iterations = 100000
+chain_a = chain_sim(iterations, S, x1, mpt)
+chain_b = chain_sim(iterations, S, 2, mpt)
+
+
+histo = rbind(table(chain_a)/(iterations + 1), table(chain_b)/(iterations + 1))
+
+barplot(histo, col = c("deepskyblue", "dodgerblue2"), main = expression('Comparison between x'[0]*'=1 and x'[0]*'=2'), beside = T , ylim = c(0, 0.5), names.arg=c("S = 1", "S = 2", "S = 3"), legend = c(expression('x'[0]*'=1'),expression('x'[0]*'=2')))
+
+
+
+```
+
+\newpage
+
+## Ex 3)
+
+Consider again the Bayesian model for Dugong's data (data available at <https://elearning2.uniroma1.it/mod/resource/view.php?id=147042>):
+
+#### a)  Derive the functional form  (up to proportionality constants) of all *full-conditionals*
+
+##### Full conditional for $\alpha$:
+
+\begin{eqnarray}
+\pi(\alpha \mid \beta,\gamma, \tau^2,x, y)&=&\frac{L(\alpha, \beta, \gamma, \tau^2 \mid Y)\pi(\alpha)}{f(y)}\propto L(\alpha, \beta, \gamma, \tau^2 \mid Y)\pi(\alpha) \propto \\
+
+&\propto& exp \bigg\{-\frac{1}{2\tau^2}\sum_{i=1}^{n}(y_i-\mu_i)^2 \bigg\}\cdot exp\bigg\{-\frac{\alpha}{2\sigma^2_{\alpha}}  \bigg\}I_{(1, \infty)}(\alpha)= \\
+
+&=& exp \bigg\{-\frac{1}{2\tau^2}\sum_{i=1}^{n}(y_i-\mu_i)^2 - \frac{\alpha}{2\sigma^2_{\alpha}} \bigg\}I_{(1, \infty)}(\alpha)=\\
+
+&=& exp \bigg\{- \frac{\sigma^2_{\alpha}\sum_{i=1}^{n}(y_i-\mu_i)^2 + \tau^2\alpha^2}{2\tau^2\sigma^2_{\alpha}} \bigg\}I_{(1, \infty)}(\alpha)=\\
+
+&=& exp \bigg\{- \frac{\sigma^2_{\alpha}\sum_{i=1}^{n}(y_i-\alpha + \beta\gamma^{x_i})^2 + \tau^2\alpha^2}{2\tau^2\sigma^2_{\alpha}} \bigg\}I_{(1, \infty)}(\alpha)=\\
+
+&=& exp \bigg\{- \frac{\sigma^2_{\alpha}\sum_{i=1}^{n}(\alpha^2-2\alpha y_i - 2\alpha\beta\gamma^{x_i})^2 + \tau^2\alpha^2}{2\tau^2\sigma^2_{\alpha}} \bigg\}I_{(1, \infty)}(\alpha)=\\
+
+&=& exp \bigg \{ \frac{n\sigma^2_{\alpha}\alpha^2 - 2\alpha\sigma^2_{\alpha}\sum_{i=1}^{n}y_i-2\alpha \beta\sigma^2_{\alpha} \sum_{i=1}^{n}\gamma^{x_i} + \tau^2\alpha^2}{2\tau^2\sigma^2_{\alpha}}  \bigg\}I_{(1, \infty)}(\alpha)=\\
+
+
+&=& exp \bigg \{ \alpha^2 \frac{n\sigma^2_{\alpha}  +\tau^2}{2\tau^2\sigma^2_{\alpha}} 
++ \frac{\alpha \sum_{i=1}^{n}(y_i + \beta \gamma^{x_i})}{\tau^2}
+\bigg\}I_{(1, \infty)}(\alpha)\\
+
+
+\implies \pi (\alpha \mid \beta, \gamma, \tau^2 ,x, y) \sim N\Big( \frac{\sigma^2_{\alpha} \sum_{i=1}^{n} (y_i + \beta \gamma^{x_i} )}{n\sigma^2_{\alpha} + \tau^2}, \frac{\tau^2\sigma^2_{\alpha}}{n\sigma^2_{\alpha} + \tau^2} \Big) 
+
+
+\end{eqnarray}
+
+##### Full conditional for $\beta$:
+
+
+\begin{eqnarray}
+
+\pi(\beta \mid \alpha, \gamma, \tau^2, x, y) &\propto& exp \bigg \{ - \frac{1}{2\tau^2}\sum_{i=1}^{n}(y_i - \mu_i)^2 \bigg\} exp \Bigg\{- \frac{\beta^2}{2\sigma^2_{\beta}} \Bigg\} I_{(1, \infty)}(\beta)= \\
+
+&=& exp \bigg \{ - \frac{ \sigma_{\beta}^{2} \sum_{i=1}^{n}(y_i + \mu_i )^2 + \beta^2 \tau^2 }{ 2\tau^2 \sigma_{\beta}^{2}} \bigg\} I_{(1, \infty)}(\beta) = \\
+
+&=& exp \bigg \{ - \frac{ \sigma_{\beta}^{2} \sum_{i=1}^{n}(y_i - \alpha + \beta \gamma^{x_i} )^2 + \beta^2 \tau^2 }{ 2\tau^2 \sigma_{\beta}^{2}} \bigg\} I_{(1, \infty)}(\beta) = \\
+
+&=& exp \Bigg \{ - \frac{\sigma_{\beta}^{2} \beta^2 \displaystyle\sum\gamma^{2x_i}-2\alpha\sigma_{\beta}^{2}\beta\displaystyle\sum \gamma^{x_i} + 2\sigma_{\beta}^{2}\beta \displaystyle\sum y_i \gamma^{x_i} + \beta^2 \tau^2}{2\tau^2\sigma_{\beta}^{2}} \Bigg\} I_{(1, \infty)}(\beta) = \\
+
+&=& exp\Bigg\{-\frac{\beta^2}{2} \frac{\tau^2+\sigma^2_{\beta}\displaystyle\sum \gamma^{2x_i}}{\tau^2\sigma^2_{\beta}}+ \beta \frac{\sigma^2_{\beta}\displaystyle\sum \gamma^{x_i} (\alpha-y_i)}{\tau^2\sigma^2_{\beta}}  \Bigg\} \\
+
+
+\implies  \pi(\beta \mid \alpha, \gamma, \tau^2, x, y) \sim N \Bigg(\frac{\sigma^2_{\beta} \displaystyle\sum\gamma^{x_i}(\alpha - y_i)}{\tau^2 + \sigma^2_{\beta}\displaystyle\sum\gamma^{2x_i}}, \frac{\tau^2\sigma^2_{\beta}}{\tau^2 + \sigma^2_{\beta}\displaystyle\sum\gamma^{2x_i}} \Bigg)
+
+\end{eqnarray}
+
+
+##### Full conditional for $\gamma$:
+
+\begin{eqnarray}
+
+\pi(\gamma \mid \alpha, \beta, \tau^2, x, y) &=& \frac{1}{(2\pi\tau^2)^{\frac{n}{2}}}\cdot exp\bigg\{- \frac{1}{2\tau^2}\displaystyle\sum_{i=i}^{n}(y_i- \mu_i)^2 \bigg\} I_{(0,1)}(\gamma) \\
+
+&\propto& exp\bigg\{- \frac{1}{2\tau^2}\displaystyle\sum_{i=i}^{n}(y_i- \alpha + \beta \gamma^{x_i})^2 \bigg\} I_{(0,1)}(\gamma)
+
+
+\end{eqnarray}
+
+
+##### Full conditional for $\tau^2$:
+
+\begin{eqnarray}
+
+\pi(\tau^2 \mid \alpha, \beta,\gamma, x, y) = \frac{1}{\tau^{2(\frac{n}{2})}\tau^{2(a+1)}}exp\bigg\{\frac{-\frac{1}{2}\sum_{i=1}^{n}(y_i-\alpha+ \beta\gamma^{x_i})^2-b}{\tau^2} \bigg\}I_{(0, \infty)}(\tau) \\
+
+\implies \pi(\tau^2 \mid \alpha, \beta,\gamma, x, y) \sim IG\bigg(a + \frac{n}{2}, b+\frac{1}{2}\displaystyle\sum_{i=1}^{n}(y_i-\alpha+ \beta\gamma^{x_i})^2 \bigg)
+
+\end{eqnarray}
+
+
+#### b)  Which distribution can you recognize within standard parametric families so that direct simulation from full conditional can be easily implemented?
+
+
+
+The parameters $\alpha$, $\beta$ and $\tau^2$ have a well known conditional distribution (Gaussian the first two and Inverse Gamma the last one) from which we can directly simulate, while the distribution of the parameter $\gamma$ does not belong to a standard parametric family.
+
+
+#### c)  Using a suitable Metropolis-within-Gibbs algorithm simulate a Markov chain ($T=10000$) to approximate the posterior distribution for the above model.
+
+
+We take the same values of exercise 1, i.e. $\sigma^2_{\alpha}= 10000$, $\sigma^2_{\beta}= 10000$, $a = 0.001$, $b = 0.001$.
+
+```{r}
+
+# library(truncnorm)
+df = read.csv("dugong-data.txt",sep="")
+names(df)
+
+
+x = df$Age
+y = df$Length
+n = length(x)
+
+iter = 1000000
+
+alpha = rep(NA, iter+1)
+beta = rep(NA, iter+1)
+gamma = rep(NA, iter+1) 
+tau_square = rep(NA, iter+1)
+
+alpha[1] = 1
+beta[1] = 1
+gamma[1] = 0.5
+tau_square[1] = 0.6
+
+
+full_cond_gamma = function(gamma, alpha, beta, tau_square) {
+  return(exp(-1/(2*tau_square)*sum((y-alpha+beta*gamma^x)^2)))
+  
+}
+
+
+for (i in 1:iter){
+  
+# alpha Markov chain
+  alpha[i+1] = rtnorm(1,(10000*sum(y+beta[i]*gamma[i]^x))/(n*10000+tau_square[i]), sqrt(tau_square[i]*10000)/(n*10000 + tau_square[i]), lower = 1, upper = Inf)
+  
+# beta Markov chain
+beta[i+1] = rtnorm(1,(10000*sum((alpha[i+1]-y)*gamma[i]^x))/(10000*sum(alpha[i+1] - y)*gamma[i]^(2*x) + tau_square[i]), sqrt(tau_square[i]*10000)/(10000*sum(gamma[i]^(2*x)) + tau_square[i]), lower = 1, upper = Inf)
+
+
+# Metropolis Hastings to update gamma MC
+
+proposal = runif(1, 0, 1)
+
+ratio = full_cond_gamma(proposal, alpha[i+1], beta[i+1], tau_square[i])/full_cond_gamma(gamma[i], alpha[i+1], beta[i+1], tau_square[i])
+
+gamma[i+1] = ifelse(runif(1,0,1) <= ratio, proposal, gamma[i])
+
+tau_square[i+1] = invgamma::rinvgamma(1, n/2 + 0.001,0.001+1/2*sum((y-alpha[i+1]+beta[i+1]*(gamma[i+1]^x))^2))
+
+
+}
+
+MG = cbind(alpha, beta, gamma, tau_square)
+head(MG, 20)
+
+```
+
+
+#### d)  Show the 4 univariate trace-plots of the simulations of each parameter
+
+```{r}
+
+par(mfrow=c(2,2))
+plot(alpha, xlab = "iterations", main="alpha trace plot",type="l") 
+plot(beta, xlab = "iterations", main="beta trace plot",type="l")
+plot(gamma, xlab = "iterations", main="gamma trace plot",type="l") 
+plot(tau_square, xlab = "iterations", main="tau Square trace plot",type="l")
+
+```
+
+
+#### e)  Evaluate graphically the behaviour of the empirical averages $\hat{I}_t$  with growing $t=1,...,T$
+
+```{r}
+par(mfrow=c(1,2))
+
+# alpha 
+hist(alpha, breaks = 50,main= "alpha histogram", xlab = "alpha") 
+abline(v=mean(alpha), col="red")
+plot(cumsum(alpha)/(1:length(alpha)), type="l",ylim = c(2, 2.8), ylab="", main="behaviour empirical average", xlab="simulations") 
+abline(h=mean(alpha), col="red")
+
+
+```
+
+
+```{r}
+par(mfrow=c(1,2))
+# beta
+
+hist(beta, main= "Beta histogram", xlab = "beta", breaks = 100, xlim = c(0,max(beta))) 
+abline(v=mean(beta), col="red")
+plot(cumsum(beta)/(1:length(beta)), type="l", ylab="",
+main="behaviour empirical average", xlab="simulations") 
+abline(h=mean(beta), col="red")
+
+```
+
+```{r}
+# gamma
+par(mfrow=c(1,2))
+hist(gamma, main= "gamma histogram", xlab = "gamma") 
+abline(v=mean(gamma), col="red") 
+plot(cumsum(gamma)/(1:length(gamma)), type="l", ylab="",main="behaviour empirical average", xlab="simulations") 
+abline(h=mean(gamma), col="red")
+```
+
+
+```{r}
+
+# tau square
+
+par(mfrow=c(1,2))
+
+hist(tau_square, main= "tau square histogram", xlab = "tau square", xlim = c(0, .07), breaks = 100) 
+abline(v=mean(tau_square), col="red") 
+plot(cumsum(tau_square)/(1:length(tau_square)), type="l", ylab="",
+main="behaviour empirical average", xlab="simulations") 
+abline(h=mean(tau_square), col="red")
+```
+
+
+
+#### f)  Provide estimates for each parameter together with the approximation error and explain how you have evaluated such error
+
+The estimate for each parameter is nothing different from the expectation of the Markov chain itself:
+\[
+\hat{I} = \frac{1}{t}\displaystyle\sum_{i=T_0+1}^{T_0+t}h(\theta_i) \xrightarrow{\text{a.s.}} E_{\pi}[h(\theta)]=I \quad \quad \text{for  }\quad t \xrightarrow{}\infty
+\]
+
+We can approximate the error computing the loss of the pointwise estimation of the parameter respect to its MC simulation.
+
+\[E[(\hat{I_n}- I)^2]=V(\hat{I_n})=\frac{1}{n}V(h(X)) = \frac{K}{n}\]
+
+Choosing $K=\hat{V}(h(x))$.
+
+```{r}
+
+# estimated parameters
+
+alpha_hat = mean(alpha)
+beta_hat = mean(beta)
+gamma_hat = mean(gamma)
+tau_hat = mean(tau_square)
+cbind(alpha_hat, beta_hat, gamma_hat, tau_hat)
+
+
+approx_err_alpha=var(alpha)/length(alpha) 
+approx_err_beta=var(beta)/length(beta) 
+approx_err_gamma=var(gamma)/length(gamma) 
+approx_err_tau_square=var(tau_square)/length(tau_square)
+
+rbind(approx_err_alpha,approx_err_beta,approx_err_gamma,approx_err_tau_square)
+
+```
+
+#### g)  Which parameter has the largest posterior uncertainty? How did you measure it?
+
+We measure the uncertainty by using the variability of the parameter respect to its pointwise estimated value: 
+
+```{r}
+var_alpha = sd(alpha)/alpha_hat
+var_beta = sd(beta)/beta_hat
+var_gamma = sd(gamma)/gamma_hat
+var_tau = sd(tau_square)/tau_hat
+
+rbind(var_alpha, var_beta, var_gamma, var_tau)
+```
+
+The parameter with the largest posterior uncertainty is tau with a coefficient of variation approximately equal to 0.6. 
+
+
+#### h)  Which couple of parameters has the largest correlation (in absolute value)?
+
+```{r}
+cor(MG)
+```
+
+As we ca see, the most correlated parameters are beta and gamma with a correlation coefficient around 0.86 in absolute value that is, however, not so far from the alpha-gamma correlation coefficient (0.85).
+
+#### i)  Use the Markov chain to approximate the posterior predictive distribution of the length of a dugong with age of 20 years.
+
+```{r}
+dugong_20years_old = rep(NA, 10000)
+
+for(i in 1:10000){
+  dugong_20years_old[i] = rnorm(1, alpha[i] + beta[i]*gamma[i]^20, sqrt(tau_square[i]))
+  
+}
+
+approx = mean(dugong_20years_old)
+
+cat(paste('the approximated length is: '), round(approx, 2))
+
+```
+
+
+#### j)  Provide the prediction of another dugong with age 30 
+
+```{r}
+dugong_30years_old = rep(NA, 10000)
+
+for(i in 1:10000){
+  dugong_30years_old[i] = rnorm(1, alpha[i] + beta[i]*gamma[i]^30, sqrt(tau_square[i]))
+  
+}
+
+approx = mean(dugong_30years_old)
+
+cat(paste('the approximated length is: '), round(approx, 2))
+```
+
+
+
+#### k)  Which prediction is less precise?
+
+
+```{r}
+precision_20 = 1/var(dugong_20years_old)
+precision_30 = 1/var(dugong_30years_old)
+
+precision_20/precision_30
+
+```
+
+
+Since the ratio between the precisions in the first and the second is smaller than one, but still close to unit, we can say that the prediction of the length for a 30 years old dugong is a bit more precise than the other one.
+
+
+
+\newpage
+
+
+
+## Ex 4)
+
+Explain how it is possible to approximate with the ABC algorithm the likelihood function of a Poisson model for the following observed data.
+
+
+
+```{r,echo=FALSE}
+
+set.seed(1235)
+x_obs <- rpois(n=30,lambda=3.5)
+
+```
+
+
+With the ABC algorithm we can obtain an approximation of the posterior distribution simulating the likelihood function. Below the ABC implementation and the visualization of the estimated distribution.
+
+
+```{r}
+
+s = 1000000
+
+simulation = rep(NA, s)
+boolean_vec = rep(NA, s)
+suf_stat = sum(x_obs)
+epsi = 4
+
+for (i in 1:s){
+  theta = rgamma(1, 1, 1)
+  x_sim = rpois(30, theta)
+  boolean_vec[i] <- abs(suf_stat-sum(x_sim)) < epsi
+  simulation[i] = theta
+  
+}
+
+abc <- cbind(boolean_vec, simulation)
+
+abc = subset(abc[,2], abc[,1]==1)
+
+```
+
+
+
+```{r}
+
+hist(abc, probability = T, breaks = 30, main = "Estimated posterior via ABC algorithm", xlab = expression(theta*' simulated'), ylab = 'posterior', col = 'deepskyblue')
+
+curve(dgamma(x, 1 + suf_stat, 1 + length(x_obs)), add = TRUE)
+
+```
+
+From this posterior estimate we can obtain an approximation of the likelihood distribution since:
+
+\[
+\text{posterior} \propto \text{likelihood}\cdot\text{prior} \implies 
+\text{likelihood} \propto \frac{\text{posterior}}{\text{prior}}
+\]
+
+```{r}
+
+posterior_est <- density(abc)
+
+prior = dgamma(posterior_est$x, 1, 1)
+
+likel = posterior_est$y/prior
+
+plot(posterior_est$x, likel, type = "l", ylim = c(0, max(likel)+10), main = 'Likelihood ABC approximation and theoretical distribution', xlab = 'x', ylab = 'likelihood', lwd = 2)
+
+c <- length(likel)==length(posterior_est$x)
+c
+curve(dgamma(x, 1 + suf_stat, 1 + length(x_obs))/dgamma(x,1,1), from = min(posterior_est$x), to = max(posterior_est$x), add = TRUE, col = "red")
+
+```
+
+\vspace*{15cm}
+
+
+
+
+* * *
+<div class="footer"> &copy; 2017-2018 - Stat4DS2+CS - Luca Tardella </div>
+
+
+
+
+```{r, warning=FALSE, error=FALSE, message=FALSE, echo=FALSE}
+cat(paste0("This homework will be graded and it will be part of your final evaluation \n\n "))
+cat(paste("Last update by LT:",date()))
+```
+
+
