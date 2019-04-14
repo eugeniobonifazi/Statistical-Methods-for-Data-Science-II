@@ -1,0 +1,862 @@
+---
+title: "R Notebook"
+output: html_document
+editor_options: 
+  chunk_output_type: inline
+---
+
+```{r, echo=FALSE, warning=FALSE, message=FALSE}
+require(msm)
+```
+
+### Exercise 1)
+Sample survey: Suppose we are going to sample 100 individuals from a county (of size much larger than 100) and ask each sampled person whether they support policy Z or not. Let $Y_i=1$ if person $i$ in the sample supports the policy, and $Y_i=0$ otherwise.
+
+##### a)
+
+Assume Y1, ..., Y100 are, conditional on ??, i.i.d. binary random variables with expectation $\theta$. Write down the joint distribution of Pr(Y1 = y1, ..., Y100 = y100|$\theta$) in a compact form. Also write down the form of $Pr(\sum_{i=1}^{n}Y_{i} = y\mid \theta)$.
+
+
+
+
+It is clear that we are dealing with $n = 100$ independent and identically distributed bernoulli trials: $Y_{i}|\theta\sim Ber(\theta) \quad for \quad i = 1,.....,100$.
+This conditional distribution of $(Y_{1},.....,Y_{n}|\theta)$ is the likelihood function of our Bayesian model and, since we have $f(y_{i}|\theta) = \theta^{y}(1-\theta)^{1-y}$ for each observation and they are iid, the compact form of this conditional distribution is: \[f(y_{1},...y_{n}\mid \theta) = \displaystyle\prod_{i=1}^{100}f(y_{i}\mid \theta)=\prod_{i=1}^{100}\theta^{y_{i}}\cdot(1-\theta)^{1-y_{i}}=\theta^{\sum_{i=1}^{100}y_{i}}(1-\theta)^{(100-\sum_{i=1}^{100}y_{i})}\]
+
+Furthermore, if we consider the joint distribution of $Y_{1},...Y_{n}$ and $\theta$ is: \[f(y_{1},....,y_{n}, \theta) = \pi(\theta)\cdot\displaystyle\prod_{i=1}^{100}f(y_{i}|\theta)=\pi(\theta)\cdot\theta^{\sum_{i=1}^{100}y_{i}}(1-\theta)^{(n-\sum_{i=1}^{100}y_{i})}\].
+
+We know that we can write a series of bernoulli trials as a binomial distribution: $S\sim Bin(100, \theta)$ with $S = \displaystyle\sum_{i=1}^{100}Y_{i} \quad and \quad Y_{i}\sim Ber(\theta)$.
+So, in this case we have:
+\[Pr(\sum_{i=1}^{100}Y_{i}=y\mid \theta) = \binom{100}{y} \theta^{y}\cdot(1 - \theta)^{100-y}=f(S\mid \theta)\]
+
+
+##### b)
+
+For the moment, suppose you believed that $\theta \in \{0.0, 0.1, ..., 0.9, 1.0\}$. Given that the results of the survey were $\sum_{i=1}^{100}Y_i=57$, compute:
+\[Pr(\displaystyle\sum_{i=1}^{100}Y_i=57\mid \theta)\]
+for each of these 11 values of $\theta$ and plot these probabilities as a function of $\theta$.
+
+
+
+
+```{r, echo=FALSE}
+theta = seq(0, 1, by = 0.1)
+n = 100
+y = 57
+
+b <- function(theta, n, y) choose(n, y)*(theta^y)*((1-theta)^(n-y))
+
+res = b(theta, n, y)
+res
+plot(theta, res, main = expression(paste("Conditional probability of Y|",theta, " for different values of ", theta)), xlab = expression(theta), ylab = "Probability", col = "darkblue")
+segments(theta, 0, theta, res, col = "darkblue")
+
+```
+
+##### c)
+
+Now suppose you originally had no prior information to believe one of these $\theta$-values over another, and so Pr($\theta$ = 0.0) = Pr($\theta$ = 0.1) = ... = Pr($\theta$ = 0.9) = Pr($\theta$ = 1.0). Use Bayes??? rule to compute $\pi(\theta\mid \sum_{i=1}^{100}Y_i=57)$ for each $\theta$-value. Make a plot of this posterior distribution as a function of $\theta$.
+
+
+
+
+Considering Bayes rule we have:
+\[ P(\theta\mid \sum_{i=1}^{100}Y_i=57)=\frac{P(\sum_{i=1}^{100}Y_i=57\mid \theta)\cdot P(\theta)}{P(\sum_{i=1}^{100}Y_i=57)}\]
+
+
+We have the same probability for each value of $\theta$ $\Big( P(\theta_{i})=\frac{1}{11} \quad for \quad i=1,...,11\Big)$ that is nothing different from values taken from a Unif distro. Furthermore we have that for 100 Bernoulli trials $P(\sum_{i=1}^{100}Y_i=57)=0.57$. At this point we can easily calculate the conditional probability with the Bayes rule for our vector of $\theta$.
+
+
+```{r, echo= FALSE}
+
+theta_givenY = (res*(1/11))/((1/11)*sum(res))
+
+plot(theta, theta_givenY, main = expression(paste("Conditional probability of ",theta, "|Y for different values of ", theta)), xlab = expression(theta), ylab = "Probability")
+segments(theta, 0, theta, theta_givenY)
+
+```
+
+
+##### d) 
+
+Now suppose you allow $\theta$ to be any value in the interval $\theta = [0, 1]$. Using the uniform prior density for $\theta \in [0, 1]$, so that $\pi(\theta) = I_{[0, 1]}(\theta)$, plot $\pi(\theta)\times P(\sum_{i=1}^{100}Y_i=57\mid \theta)$ as a function of $\theta$.
+
+
+
+Since $\theta$ can be any value in the interval $\theta = [0, 1]$ we can consider the prior distribution as a standard uniform one that is equal to a Beta(1,1) and we have:
+
+\[
+p(\theta)=\frac{\Gamma(2)}{\Gamma(1)\Gamma(1)}\theta^{1-1}(1-\theta)^{1-1}=1 \quad \quad \forall  \theta \in [0, 1]
+\]
+
+So we have just the Bin(100, .57) that has to be plotted as function of $\theta$. 
+
+
+```{r, echo=FALSE}
+
+# Density distribution of a Bin(100, 57)
+
+curve(dbinom(57, 100, x), from = 0, to = 1, lwd = 2, col = "deepskyblue4" , ylab = "Density", main = expression(paste("Joint distribution of ", theta, " and ", Y)))
+
+```
+
+
+##### e)  
+
+As discussed in chapter 3 of Peter Hoff???s book, the posterior distribution of $\theta$ is Beta(1+57,1+100???57). Plot the posterior density as a function of $\theta$. Discuss the relationships among all of the plots you have made for this exercise.
+
+
+
+```{r, echo=FALSE}
+
+# Histogram of 10000 values simulated from a Beta(58, 44)
+
+
+hist(rbeta(10000, 58, 44), probability = T, breaks = 50, col = "darkolivegreen3", main = "Posterior distribution - Beta(58, 44)", xlab = expression(theta))
+
+
+#Theoretical density function
+
+curve(dbeta(x, 58, 44), add = T, col = "brown2", lwd = 2)
+legend("bottom", legend=c("Posterior density", "Theoretical"), col=c('darkolivegreen3', "brown2"), lty=1, lwd =2)
+
+```
+
+
+Now let's describe the relationships between the four plots showed together below.
+
+b) is just the probability of $Y|\theta \sim Bin(100, 0.57)$ for $\theta \in \{0.0, 0.1, ..., 0.9, 1.0\}$;
+
+c) is the conditional probability of $\theta|Y \quad \text{with } Y\sim Bin(100, 0.57)$ that is just the marginal probability of $\theta$ given a certain value of our $Y|\theta\sim Bin(n,\theta)$ data distribution and a certain probability for $\theta$, i.e. $P(\theta)=1/11$ since each value of $\theta$ has the same probability to occur. For this reason we have a plot pretty similar to b): we have just $P(Y|\theta)$ multiplied by aconstant that actually is: $\frac{P(\theta)}{P(\sum_{i=1}^{100}Y_i=57)}$;
+
+d) Here we are plotting the same $Bin(100, 0.57)$ of point b) but for the whole support of $theta \in [0,1]$ that means the theoretical distribution of our data;
+
+e) This is the posterior distribution of the Bin-Beta Bayesian conjugate model. Like point c) this is $\theta|Y$ but that was under frequentist approach with Bayes rule, while here we have the estimated distribution of $\theta|Y\sim Beta(58, 44)$ having the information about data and prior distributions.
+
+
+```{r, echo=FALSE}
+par(mfrow=c(2, 2))
+
+# first
+plot(theta, res, main = "b)", xlab = expression(theta), ylab = "Probability", col = "darkblue")
+segments(theta, 0, theta, res, col = "darkblue")
+
+# second
+
+plot(theta, theta_givenY, main = "c)", xlab = expression(theta), ylab = "Probability")
+segments(theta, 0, theta, theta_givenY)
+
+# third
+
+curve(dbinom(57, 100, x), from = 0, to = 1, lwd = 2, col = "deepskyblue4" , ylab = "Density", main = "d)")
+
+
+# fourth
+
+hist(rbeta(10000, 58, 44), probability = T, breaks = 50, col = "darkolivegreen3", main = "e)", xlab = expression(theta))
+curve(dbeta(x, 58, 44), add = T, col = "brown2", lwd = 2)
+
+```
+
+
+### Exercise 2)
+
+
+Consider a normal statistical model $X_{i}|\theta \sim N(\theta, \lambda=1/\sigma^2)$ with  $X_1|\theta,...,X_n|\theta$ iid, where the precision parameter is known.
+Use as a prior distribution on the (conditional) mean $\theta$ a Normal with prior mean $\mu$ and prior precison $\nu$.
+
+
+##### a) 
+
+derive the general formula of the prior predictive distribution for a single observation X.
+
+
+As we know, the prior predictive distribution is nothing different from the marginal distribution of X and we can obtain it as the result of:
+
+\[ \int_{\Theta}J(\theta, X)d\theta= \int_{\Theta}p(X\mid \theta)\cdot p(\theta)d\theta= P(X)\]
+
+But there is a much simpler way to go about this. We can consider the two Gaussian distributions as follows:
+
+\[X = \theta + \varepsilon_{X}\quad \varepsilon_{X} \sim N(0, \lambda)\]
+\[and\]
+\[\theta = \mu + \varepsilon_{\theta}\quad \varepsilon_{\theta} \sim N(0, \nu)\]
+With $\varepsilon_{X}$ and $\varepsilon_{\theta}$ independently distributed.
+So at this point we can easily write down $X= \mu + \varepsilon_{X}+\varepsilon_{\theta}$.
+The sum of two independently normally distributed random variables,as $\varepsilon_{X}$ and $\varepsilon_{\theta}$ actually are, is also a normally distributed random variable. Hence we have:
+\[ X \sim N(\mu, \lambda+\nu)\] 
+since $E(X)=\mu$ and $Var(X)= \sigma^2 + \frac{1}{\nu}$.
+
+
+
+
+##### b) 
+
+derive the general formula of the posterior predictive distribution for a single observation X.
+
+In this case the observation comes itself from a normal  distribution too but updated after getting the information from data. So we'll consider  the posterior Gaussian distribution as informative about the parameter $\theta$. At this point we should integrate out as follows:
+\[
+P(X^{new}\mid X_{1}^{obs}, ...,X_{n}^{obs})=\int_{\Theta}f(X^{new},\theta\mid X^{obs})d\theta=\int_{\Theta}f(X^{new}\mid \theta)f(\theta\mid X^{obs})d\theta
+\]
+
+It means that we should integrate out the product between our likelihood function and the posterior distribution of the Normal model with known precision. This  posterior function is distributed as $\theta\mid X \sim N(\mu\ast, \nu\ast)$ with variance and precision $\mu\ast=w \cdot \mu+(1-w) \bar{x}_n$, $\nu\ast=\nu + \lambda\cdot n$  with $w=\frac{\nu}{\nu+n \lambda}$.
+Anyway we can apply the same trick we used in the previous point to get out the prior predictive distribution of a single observation X just taking the posterior distribution instead of the prior one. Writing it down we have:
+\[X = \theta + \varepsilon_{X}\quad \varepsilon_{X} \sim N(0, \lambda)\]
+\[and\]
+\[\theta = \mu\ast + \varepsilon_{\theta}\quad \varepsilon_{\theta} \sim N(0, \nu\ast)\]
+
+With $\varepsilon_{X}$ and $\varepsilon_{\theta}$ independently distributed. Our final result in this case will be: $X= \mu\ast + \varepsilon_{X}+\varepsilon_{\theta}$ with, consecutively \[ X \sim N(\mu\ast, \lambda+\nu\ast)\]. 
+
+
+
+
+##### c)
+
+Elicit your prior distribution on the unknown $\theta$ in such a way that your prior mean is 0 and you believe that the unknown $\theta$ is in the interval [???5, 5] with prior probability 0.96.
+
+
+
+
+We know that our parameter $\theta$ has a Normal distribution centered in 0 and belonging to a Confidence set [-5, 5] with probability 0.96. Since we know that a normal confidence set is determined as: $CI_{\alpha}=[mean \pm Z_{\frac{\alpha}{2}}\cdot \hat{se}]$ we can derive the standard error (which is just equal to the estimated standard deviation of the probability distribution) simply deviding the absolute value of the deviation respect to the mean in the confidence set for the quantile of the standard Normal related to a confidence level $1-\alpha=0.96$.
+
+
+```{r, echo=FALSE, message=FALSE, results='asis', warning=FALSE}
+library(knitr)
+alpha = 1-0.96
+sd = 5/qnorm(1-alpha/2, 0, 1)
+kable(c("sd"=sd,"Var"=sd^2), format = "markdown", digits = 2)
+
+```
+
+So we can consider our prior distribution as $\theta \sim N(0, 5.93)$.
+
+
+##### d)
+
+assume that the known value of $\lambda$ is 1/3 and suppose you have observed the following data:
+
+{???1.25, 8.77, 1.18, 10.66, 11.81, ???6.09, 3.56, 10.85, 4.03, 2.13}
+
+derive your posterior distribution and represent it graphically.
+
+
+
+
+After having found our prior distribution we can easily derive from these information the parameters of the likelihood function that are $\theta=\bar{x}$ and the given $\lambda=1/3$. Now, having the paramiters of the prior and the likelihood function, it's easy to elicit the posterior normal distribution: $\theta \mid X\sim N(\mu\ast, \nu \ast)$ with $\mu\ast=w \cdot \mu+(1-w) \bar{x}_n=4.5$ and $\nu\ast=\nu + \lambda\cdot n=3.5$.
+
+
+```{r, echo=FALSE}
+x = c(-1.25, 8.77, 1.18, 10.66, 11.81, -6.09, 3.56, 10.85, 4.03, 2.13)
+n = length(x)
+mean_x = mean(x)
+lambda = 1/3
+mu = 0
+nu = 1/sd^2
+w = nu/(nu+n*lambda)
+mu_star = w*mu + (1-w)*mean_x
+nu_star = nu + lambda*n
+sigma_star=1/sqrt(nu_star)
+
+
+#curve(dnorm(x, mu_star, rho_star), xlim = c(0,10))
+#posterior_d=function(theta) return (dnorm(theta,mu_star, sigma_star)) 
+curve(dnorm(x,mu_star, sigma_star), from=mu_star-8*sigma_star, to=mu_star+8*sigma_star,lwd = 3, col = "blue",
+xlab = expression(theta), main = "Normal Posterior distribution", ylab = expression(paste("f(",theta,")")))
+
+```
+
+##### e) 
+
+derive your favorite point estimate and interval estimate and motivate your choices.
+
+
+For a Normal statistical model a point estimate is given by the expected value:
+\[
+\hat{\theta}=E[\theta|x_1,...,x_n]= {\mu}^\star =w\mu+(1-w)\bar{X_n}
+\]
+
+We have $w=\frac{\nu}{\nu+ n \lambda}=0.048$ and ${\mu}^\star=4.345$.
+
+We can easily derive the right confidence interval chosing the central 50% of the distribution just using qnorm.
+
+
+```{r}
+
+print(c("lower"=round(qnorm(0.025, mu_star, sigma_star), 2), "upper"=round(qnorm(0.975, mu_star, sigma_star), 2)))
+
+```
+
+
+
+
+
+
+### Exercise 3)   
+
+
+
+
+ As an alternative model for the previous 10 observations:
+???1.25 8.77 1.18 10.66 11.81 ??? 6.09 3.56 10.85 4.03 2.13
+consider the following statistical model where $X_i\mid \theta$ are i.i.d with $X_i\mid \theta \sim f(x\mid \theta) = \frac{1}{20}I_{[\theta-10, \theta+10]}(x)$. 
+Use the same prior elicitation for $\theta$ as in the model of the previous excercise.
+
+
+##### a)  
+
+Provide a fully Bayesian analysis for these data explaining all the basic ingredients and steps for carrying it out. In particular, compare your final inference on the unknown $\theta = E[X\mid \theta]$ with the one you have derived in the previous point 2).
+
+
+
+
+The probability density of our data has the following behaviour:
+\[f(x) = \frac{1}{20} \cdot I_{[\theta-10,\theta +10]}(x)=
+  \begin{cases}
+    \frac{1}{20}       & \quad \text{if } \theta -10 \leq x \leq \theta + 10\\
+    0  & \quad otherwise
+  \end{cases}\]
+  
+That is a uniform distribution: $X_i \mid \theta \sim Unif(\theta-10, \theta +10)$. 
+If we write it for the whole sample our likelihood will have the following face:
+\[
+L(\theta)=\prod_{i=1}^{n}\Bigg[\frac{1}{20}I_{[\theta-10,\theta +10]}(x_i) \Bigg]=\frac{1}{20^n}\prod_{i=1}^{n}\Big[I_{[\theta-10,\theta +10]}(x_i) \Big]
+\]
+
+Since the support of the indicator function depends on the parameter we should express it as a function of $\theta$. We have:
+\[
+\prod_{i=1}^{n}I_{[\theta-10, \theta+10]}(x_i)=\begin{cases}
+    1       & \quad \text{if}\quad \theta -10 \leq x_i \leq \theta + 10 \quad for \quad i \in \{1,....,n\}\\
+    0  & \quad otherwise
+  \end{cases}
+\]
+
+This means that we have $\theta -10 \leq x_{(1)} \leq x_{(n)} \leq \theta +10$ with $x_{(1)}=min\{x_1,...,x_n\}$ and $x_{(n)}=max\{x_1,...,x_n\}$. At this point, after just doing some algebra, we have $x_{(n)}-10 \leq \theta \leq x_{(1)}+10$. So we can finally write our likelihood function as follows:
+\[
+L(\theta)=\frac{1}{20^n}\prod_{i=1}^{n}\Big[I_{[\theta-10,\theta +10]}(x_i) \Big]=\frac{1}{20^n} \cdot I_{[x_{(n)}-10, x_{(1)}+10]}
+\]
+
+```{r, echo=FALSE}
+x=c(-1.25, 8.77, 1.18, 10.66, 11.81, -6.09, 3.56, 10.85, 4.03, 2.13)
+l_b = max(x) - 10
+u_b = min(x) + 10 
+n = length(x)
+L = function(theta) ((1/20^n)*(theta>=l_b & theta<=u_b))
+curve(L(x),from=1,to=5,xlab=expression(theta),ylab="likelihood", main = expression(paste("Uniform distribution of X given ", theta)), col = "darkblue")
+```
+
+
+The prior distribution comes from the previous exercise, so we have: $\theta \sim N(\mu=0, \nu=\frac{1}{5.93})$.
+
+```{r}
+curve(dnorm(x, mu, sd), from=-20, to=20,xlab=expression(theta),ylab=expression(paste("f(", theta, ")")), col = "black", main = expression(paste("Normal prior distribution of ", theta)))
+```
+
+
+Finally we have to derive the posterior distribution that is computed as follows:
+
+\[
+f(\theta \mid x)= 
+\frac{L(\theta)\cdot \pi(\theta)}{m(x)}=
+\frac{L(\theta)\cdot \pi(\theta)}{\int_{\Theta}L(\theta)\cdot \pi(\theta)d\theta} =
+\frac{\frac{1}{20^n} \cdot I_{[x_{(n)}-10, x_{(1)}+10]}(\theta)\cdot\frac{\sqrt{\nu}}{\sqrt{2\pi}}exp\{-\frac{1}{2}\nu(\theta-\mu)^2\}}{\frac{1}{20^n} \int_{\Theta}I_{[x_{(n)}-10, x_{(1)}+10]}(\theta)\cdot\frac{\sqrt{\nu}}{\sqrt{2\pi}}exp\{-\frac{1}{2}\nu(\theta-\mu)^2\}} =
+\frac{ I_{[x_{(n)}-10, x_{(1)}+10]}(\theta)\cdot\frac{\sqrt{\nu}}{\sqrt{2\pi}}exp\{-\frac{1}{2}\nu(\theta-\mu)^2\}}{ \int_{x_{(n)}-10}^{x_{(1)}+10}\frac{\sqrt{\nu}}{\sqrt{2\pi}}exp\{-\frac{1}{2}\nu(\theta-\mu)^2\}}
+\]
+
+Let's visualize and compare it with both the prior and the posterior of the second excersise.
+
+```{r, echo=FALSE}
+
+m = pnorm(u_b, mu, sd)-pnorm(l_b, mu, sd)
+L_n = function(theta) ((theta>=l_b & theta<=u_b))
+prior=function(theta) return (dnorm(theta, mu, sd)) 
+post=function(theta) return (L_n(theta)*prior(theta)/m)
+
+# Plot
+curve(post(x), from=-5, to=10, xlab=expression(theta), ylab=expression(paste("f(", theta, ")")), col='lightblue', lwd=3, main = 'Posterior distribution vs Prior')
+curve(prior(x), col="red", add = T)
+legend("topright", legend=c("Posterior", "Prior"), col=c('lightblue', "red"), lty=1, lwd =2)
+
+```
+
+
+```{r, echo=FALSE}
+
+curve(dnorm(x,mu_star, sigma_star), from=-5, to=10, ylab=expression(paste("f(", theta, ")")), lwd = 3, col = "blue",
+xlab = expression(theta),main = expression(paste("Normal Posterior distribution (", 2^nd, " ex) vs Prior")))
+curve(prior(x), col="red", add = T)
+legend("topright", legend=c("Posterior", "Prior"), col=c('blue', "red"), lty=1, lwd =2)
+
+```
+
+##### b)
+
+Write the formula of the prior predictive distribution of a single observation and explain how you can simulate i.i.d random draws from it. Use the simulated values to represent approximately the predictive density in a plot and compare it with the prior predictive density of a single observation of the previous model.
+
+
+
+
+As said before the prior predictive distribution is just marginal distribution of the data removing the conditioning on the paramether $\theta$. Developing this idea via formulas we get:
+
+\[m(X) =\int_ {\Theta}J(x,\theta)d\theta = \int_{\Theta}f(x|\theta)\pi(\theta)d\theta = \int_{\Theta}\frac{1}{20}I_{[x-10, x+10]}(\theta)\frac{1}{\sqrt{2\nu^2}}e^{\frac{(\theta-\mu)^2}{2\nu^2}}d\theta\]
+so doing the right math to get rid of the integral function and the indicator function we get
+\[m(X) = \frac{1}{20}\int_{x-10}^{x+10}\frac{1}{2\nu^2}e^{\frac{\theta^2}{2\nu^2}}d\theta\]
+this is just a Normal distribution centered in 0 with variance $\nu^2$ and the integral is just the (x-10) and (x+10) quantile of that distribution.
+If we standardize the normal distribution ($\frac{x-\theta}{\sigma^2}$) we can use the $\Phi$ function to get the quantiles:
+\[m(X) = \frac{1}{20}\int_{\theta-10}^{\theta+10}\frac{1}{2\nu^2}e^{\frac{\theta^2}{2\nu^2}} = \frac{1}{20}\Big(\Phi(\frac{\theta+10-\mu}{\nu^2})-\Phi(\frac{\theta-10-\mu}{\nu^2})\Big) = \frac{1}{20}\Big(\Phi(\frac{\theta+10}{\nu^2})-\Phi(\frac{\theta-10}{\nu^2})\Big)\]
+
+
+
+```{r}
+# simulate values from the prior predictive
+prior_predict = function(x, sigma) (pnorm((x+10)/sqrt(sigma))-pnorm((x-10)/sqrt(sigma)))*(1/20)
+simulation= rep(NA,10000)
+
+for (i in 1:length(simulation)){
+  # generate theta value from the distribution we know
+  theta_gen = rnorm(1, mean = mu, sd = sd)
+  simulation[i] = runif(1, theta_gen-10, theta_gen+10)
+
+}
+r = prior_predict(simulation, sd)
+
+hist(simulation, breaks = 15, probability = TRUE, col = "lightblue", main = "Approx. predictive VS prior predictive" )
+curve(prior_predict(x, sd), add = TRUE, col = "blue")
+legend("bottom", legend=c("Approx. predictive", "Prior"), col=c('lightblue', "blue"), lty=1, lwd =2)
+
+```
+
+##### c)
+
+Consider the same discrete (finite) grid of values as parameter space $\Theta$ for the conditional mean $\theta$ in both models. Use this simplified parametric setting to decide whether one should use the Normal model rather than the Uniform model in light of the observed data.
+
+
+
+
+We can elicit a Bayesian model comparison using the Bayesian Factor which aim is to quantify the support for a model over another, regardless of whether these models are correct. If we are comparing models $m_i$ and $m_j$, the Bayesian factor is built as follows:
+\[
+BF_{ij}=\frac{b(m_i \mid data)}{b(m_j \mid data)}=\frac{\int_{\Theta}f(data| \theta, m_i)\pi(\theta|m_i)d\theta}{\int_{\Theta}f(data| \theta, m_j)\pi(\theta|m_j)d\theta}=\frac{\int_{\Theta}f(data| \theta, m_i)d\theta}{\int_{\Theta}f(data| \theta, m_j)d\theta }
+\]
+
+Since we have to consider a discrete grid of values as parameter space $\Theta$, our Bayes factor will be:
+\[
+BF_{ij}=\frac{b(m_i \mid data)}{b(m_j \mid data)}=\frac{\sum_{\Theta_{m_{i}}}f(data|\theta, m_i)}{\sum_{\Theta_{m_{j}}}f(data|\theta, m_j)}=
+\]
+
+Since we have to use the same set of values for both models,
+
+\[
+=\frac{\sum_{\Theta}f(data|\theta, m_i)}{\sum_{\Theta}f(data|\theta, m_j)}
+\]
+
+
+```{r}
+
+theta=seq(-100,100,0.1)
+
+model_1=rep(NA,length(theta))
+model_2=rep(NA,length(theta))
+
+for(i in 1:length(theta)){ 
+model_1[i]=prod(dnorm(x,theta[i],sqrt(3))) 
+model_2[i]=prod(dunif(x,theta[i]-10,theta[i]+10))
+}
+
+BF=sum(model_1)/sum(model_2) 
+BF
+
+```
+
+Since this ratio has a value strictly close to 0, we can conclude that we chose the second model based on the Uniform distribution. 
+
+
+### Exercise 4)
+
+
+A-R algorithm
+
+##### a)
+
+show how it is possible to simulate from a standard Normal distribution using pseudo-random
+deviates from a standard Cauchy and the A-R algorithm;
+   
+   
+   
+To simulate according to the A-R algorithm we need the following ingredients:
+
+1) a target distribution $X = f_x(x)$;
+2) a candidate distribution from which it's easy to simulate, $g(X)=Y$.
+
+In our case we have both target distribution ($f_x(x)\sim N(0,1)$) and a candidate distribution which is actually the standard Cauchy: $Y\sim Cauchy(0,1)$.
+
+##### b)
+
+provide your R code for the implementation of the A-R;
+
+
+
+```{r, message=FALSE, warning=FALSE}
+set.seed(123)
+# Generate the two distribution
+normal = function(x) (dnorm(x, 0, 1))
+cauchy = function(x) (dcauchy(x, 0, 1))
+
+# ratio between the two function
+ratio_fun = function(x) (normal(x)/cauchy(x))
+optimiz = optimize(ratio_fun, interval = c(-5, 5), maximum = T)
+
+# maximum of the ratio between the standard normal and the standard cauchy
+round(optimiz$maximum, 2)
+
+```
+```{r}
+# value of the maximum of the ratio between the standard normal and the standard cauchy
+k <- optimiz$objective
+round(k, 2)
+```
+
+Let's show a graphical visulization of the maximum of our ratio and, consecutively, a comparison of the two distributions: the target distribution and the one that define the the bounded area.
+
+```{r, echo=FALSE}
+
+curve(ratio_fun(x), xlim = c(-5, 5), ylim = c(0, 2), main = "Ratio between Normal and Cauchy", ylab = "Ratio", lwd = 2)
+abline(h = optimiz$objective, col = 2, lty = 2, lwd = 2)
+
+```
+
+```{r, echo=FALSE}
+
+bound_f = function(x) (k*cauchy(x))
+
+curve(normal(x),from = -5, to = 5, ylim= c(0, 0.55), main = "Target distribution and  bound function", lwd = 2, ylab = "f(x)")
+curve(bound_f(x), col = "red", lwd = 2, add = T)
+legend("topright", legend=c("Target distribution", "k*Y"), col=c('black', "red"), lty=1, lwd =2)
+
+```
+
+##### c) and d)
+
+evaluate numerically (approximately by MC) the acceptance probability;
+
+write your theretical explanation about how you have conceived your Monte Carlo estimate of the       acceptance probability.
+
+
+
+We have to compute the acceptance probability i.e. the probability of the event $Y = Y^{A}$ i.e. $E = 1$ that depends on the joint distribution $(Y, E)$. Let us start from the conditional acceptance probability $P(E=1\mid Y=y)$ hence the (unconditional) acceptance probability of each is:
+\[
+P(E=1)=\int_{(0,1)}P(E=1\mid Y=y)f_U(y)dy=\int_{(0,1)}\frac{f_x(y)}{kf_U(y)}f_U(y)dy=\frac{1}{k}\int_{(0,1)}f_U(y)dy=\frac{1}{k}
+\]
+
+This is the theretical probability of acceptance but we can reach an approximation of it by simulating on our distributions and a uniform one, having in mind that $f_x(x)\leq kq(x) \quad \forall x \in \mathcal{Y}$ with $Y\sim q$ (that is our standard Cauchy) and that we can consider $E\mid Y=y\sim Ber\bigg(\frac{f_x(Y)}{k\cdot q(y)}\bigg)$.
+By using Montecarlo we can simulate on our distribution and obtain, for n large enough, our approximate acceptance probability such that:
+
+\[
+P(E)=E(Y^{A})\simeq\frac{1}{n}\displaystyle\sum_{i=1}^{n}Y^{A}
+\]
+
+That is of course, the empirical acceptance probability.
+
+```{r}
+
+sim = 10000
+y = rcauchy(sim, 0, 1)
+U  = runif(sim, 0, 1)
+target_distr = function(x) dnorm(x, 0, 1)
+candidate_distr = function(x) dcauchy(x, 0, 1)
+
+Y_accepted = y[U <= target_distr(y)/(k*candidate_distr(y))]
+accepted = length(Y_accepted)
+
+empirical_acc = accepted/sim
+empirical_acc
+
+```
+
+##### e) and f)
+
+save the rejected simulations and provide a graphical representation of the empirical distribution    (histogram or density estimation);
+
+derive the underlying density corresponding to the rejected random variables and try to compare it    with the empirical distribution.
+
+
+
+
+
+In the plot below we show together the histogram of the rejected values and its theoretical distribution. For evaluating we proceded as follows:
+
+We know, from Bayes $P(A|B)=\frac{P(B|A)P(A)}{P(B)}$ that, in our case, is referred to the Acceptance distribution:
+\[
+P \bigg(Y\leq y\mid U\leq \frac{f(y)}{kg(y)} \bigg)=\frac{F(y)}{kG(y)} \frac{G(y)}{1/k}=F_Y(y)
+\]
+
+but now we are interested in $P(A|B^c)=\frac{P(B^c|A)P(A)}{P(B^c)}=\frac{(1-P(B|A))P(A)}{P(B^c)}$ that means that the rejected theoretical distribution has the following face:
+\[
+P \bigg(Y\leq y\mid U\geq \frac{f(Y)}{kg(Y)} \bigg)=\bigg( 1-\frac{F(y)}{kG(y)} \bigg) \frac{G(y)}{(1-1/k)}= \bigg( G(y)-\frac{F(y)}{k} \bigg)\frac{1}{(1-1/k)}
+\]
+ with, in our case, $G\sim Cauchy(0,1)\text{ and } F\sim N(0,1)$.
+ 
+
+```{r}
+
+Y_rejected = y[U > target_distr(y)/(k*candidate_distr(y))]
+empirical_rej = length(Y_rejected)/sim
+hist(Y_rejected, breaks = 10000, xlim = c(-30, 30), ylim = c(0, .2), probability = T, xlab = "Y rejected", col = "lightblue", main = "Histogram of Y rejected")
+theoretical = function(x) (dcauchy(x, 0, 1)-dnorm(x, 0, 1)/k)*(1/(1-1/k))
+curve(theoretical(x), col = "blue", add = T, lwd = 2)
+
+```
+
+
+```{r, echo=FALSE}
+
+hist(Y_accepted, col = "lightblue", probability = T, ylim = c(0, 0.4), main = "Histogram of Y accepted", xlab = "Y accepted")
+
+curve(normal(x), col = "blue", add = T, lwd = 2)
+
+```
+
+
+### Exercise 5)
+
+Marginal likelihood evaluation for a Poisson data model. Simulate 10 observations from a known Poisson distribution with expected value 2. Use set.seed(123) before starting your simulation. Use a $Gamma (1, 1)$ prior distribution and compute the corresponding marginal likelihood in 3 differnt ways:
+
+a) exact analytic computation;
+
+b) by Monte Carlo approximation using a sample form the posterior distribution and the harmonic mean approach. Try to evaluate random behaviour by repeating/iterating the approximation $\hat{I}$ a sufficiently large number of times and show that the approximation tends to be (positively) biased. Use these simulations to evaluate approximately the corresponding variance and mean square error;
+
+c) by Monte Carlo Importance sampling choosing an appropriate Cauchy distribution as auxiliary distribution for the simulation. Compare its performance with respect to the previous harmonic mean approach;
+
+
+
+##### a)  
+
+We have a Poisson model with likelihood distribution $Y_1, ..., Y_n\mid \theta \sim Pois(\theta)$ and prior distribution of the parameter $\theta \sim Gamma(\alpha, \beta)$.
+To evaluate the marginal distribution of our likelihood just integrating the joint distribution $j(Y, \theta)=f(Y|\theta)f(\theta)$ over the whole support of the parameter $\theta$:
+\[
+m(y) = \int_{\Theta} L(\theta) \pi(\theta) d\theta
+\]
+\[
+= \int_{0}^{+\infty} \frac{\theta^{\sum y_i}e^{-\theta}}{\prod y_i!}\frac{\beta^{\alpha}}{\Gamma(\alpha)}e^{-\beta \theta} d \theta
+\]
+After simplifing after some algebra, this gives the final result:
+\[
+=\frac{\beta^{\alpha}}{\Gamma(\alpha)\prod y_i!}\frac{\Gamma \big(\sum y_i+\alpha \big)}{(\beta+n)^{\sum y_i + \alpha}}
+\]
+
+
+Since we know both parameters of likelihood and prior, we can easily derive this marginal likelihood distribution: 
+\[
+\frac{1}{\Gamma(1)\prod y_i!}\frac{\Gamma \big(\sum y_i+1 \big)}{11^{\sum y_i + 1}}
+\]
+
+```{r}
+set.seed(123)
+x_pois = rpois(10, 2)
+y_marg <- function(x, beta, alpha) {((beta^alpha)/(gamma(alpha)*prod(factorial(x))))*(gamma(sum(x)+alpha)/(beta + length(x))^(sum(x)+alpha))}
+
+analitic_marg = y_marg(x_pois, 1, 1)
+print(c("exact analytic computation"= analitic_marg))
+
+
+```
+
+
+##### b)    
+
+Now we have to estimate the value of our marginal likelihood using Monte Carlo sampling with the armonic mean approach. The estimation of $\hat{I}$ is the following:
+
+\[
+\hat{I}=\frac{1}{\frac{1}{t} \displaystyle\sum_{i=i}^{t}\frac{1}{L(\theta_i)}}
+\]
+
+Generating $\theta_1,...,\theta_n$ from the posterior $Gamma$ distribution. We'll repeat this operation 1000 times in order to evaluate the true estimate with this approach.
+
+```{r}
+
+armonic_MC <- function(vec) 1/((1/length(vec))*sum(1/vec))
+simul = 10000
+sim2 = 1000
+bootvec = rep(NA, sim2)
+
+for(j in 1:sim2){
+r_post = rgamma(simul, 1+ sum(x_pois), 1 + length(x_pois))
+result = rep(NA, simul)
+
+c = 0
+for (i in r_post){
+  c = c+1
+  L = prod(dpois(x_pois, i))
+  result[c]=L
+}
+
+bootvec[j] = armonic_MC(result)
+
+}
+
+bias = mean(bootvec)-analitic_marg
+variance = var(bootvec)
+MSE = variance + bias^2
+
+print(c("bias"=bias, "Variance" = variance, "MSE" = MSE))
+
+```
+
+
+We can see from both the value of the bias printed above and the histogram below that the bias tends to be positive. As a matter of fact we can see from the histogram that the most part of the estimated marginal likelihood (more precisely 96%) are over the analytic computation that we can assume as the true one since $bias(\hat{I}) = E(\hat{I}) - I$.
+
+
+```{r, echo=FALSE, message=FALSE, warning=FALSE}
+
+hist(bootvec, freq = T, col ="darkslategray1", breaks = 30, main = "Histogram of marginal likelihood estimated by AM", xlab = expression(paste(hat(I))))
+abline(v=analitic_marg, lwd = 2, col = "red")
+
+bias_pos = bootvec[bootvec>analitic_marg]
+perc_bias_pos = length(bias_pos)/length(bootvec)
+cat("percentage of bias positive = ", perc_bias_pos*100, "%", sep = "")
+
+```
+
+##### c)
+
+by Monte Carlo Importance sampling choosing an appropriate Cauchy distribution as auxiliary distribution for the simulation. Compare its performance with respect to the previous harmonic mean approach.
+
+
+
+
+
+```{r}
+
+curve(dgamma(x, 1, 1), xlim = c(-10, 10), lwd = 2, main = "Fitting of different Cauchy with prior Gamma", ylab = "f(x)")
+curve(dcauchy(x, 0, .5), col = "orange",lwd = 2,  add = T, xlim = c(-10, 10))
+curve(dcauchy(x, 0, .32), col = "red", lwd = 2, add = T, xlim = c(-10, 10))
+curve(dcauchy(x, 1, 1), col = "blue", lwd = 2, add = T, xlim = c(-10, 10))
+curve(dcauchy(x, 1, 2), col = "green",lwd = 2,  add = T, xlim = c(-10, 10))
+
+legend("topright", legend=c("Gamma(1, 1)","Cauchy(0, 0.5)", "Cauchy(0, 0.32)", "Cauchy(1, 1)", "Cauchy(1, 2)"), col=c("black","orange", "red", "blue","green"), lty=1, lwd =2)
+
+```
+
+we chose the Cauchy(0, 0.32) which is the closest one to the Gamma(1, 1). 
+
+
+```{r}
+curve(dgamma(x, 1, 1), xlim = c(-10, 10), lwd = 2, main = "Fitting of different Cauchy with prior Gamma", ylab = "f(x)")
+curve(3*dcauchy(x, 0, 0.9)*(x>0), col = "red", lwd = 2, add = T, xlim = c(-10, 10))
+```
+
+
+```{r}
+
+Likel = function(x, plambda) prod(dpois(x, plambda))
+ratio = function(x) dgamma(x,1,1)/dcauchy(x,0,0.32)
+Likel_vec = Vectorize(Likel,vectorize.args = 'plambda')
+
+is_sample <- function(sim){
+  
+r_cauchy = rcauchy(sim, 0, 0.32)
+r_cauchy = r_cauchy[r_cauchy>0]
+result_is = (mean(Likel_vec(x_pois,r_cauchy)*ratio(r_cauchy)))/(mean(ratio(r_cauchy)))
+return(result_is)
+}
+
+
+vec_res = rep(NA, sim2)
+for (i in 1:sim2){
+  vec_res[i]=is_sample(1000)
+}
+
+bias2 = mean(vec_res)-analitic_marg
+variance2 = var(vec_res)
+MSE2 = variance2 + bias2^2
+
+print(c("bias"=bias2, "Variance" = variance2, "MSE" = MSE2))
+
+hist(vec_res, col = "darkseagreen1", breaks = 20, main = "Histogram of marginal likelihood estimated by IS",xlab = expression(paste(hat(I))) )
+abline(v=analitic_marg, lwd = 2, col = "red")
+
+```
+
+The MSE is pretty smaller with the Importance Sampling respect to the onecalculated with the armonic mean. Furthermore, the estimated values of the likelihood function are also simmetrically distributed around the theoretical analitic computation.
+
+
+
+### Exercise 6)
+
+
+
+Provide two alternative implemetations of 10000 i.i.d. simulations from the following left-truncated
+normal distribution
+\[
+f(x) \propto exp \Bigg\{-\frac{1}{2} \frac{(x+1)^2}{10} \Bigg\}I_{[-2, \infty]}(x)
+\]
+
+using:
+
+a) integral transform i.e. using the inverse CDF;
+
+b) Acceptance-rejection.
+
+Try to write R functions which can be generalized for arbitrary parameters (number of simulations, truncation point, mean and standard deviation of the underlying Gaussian density). Provide theoretical arguments to justify your implementation and show the matching between the theoretical distribution and the empirical distribution of your 1000 simulations.
+
+
+
+
+##### a) 
+
+
+```{r}
+
+inverse_cdf <- function(sim, trunc, mean, sd){
+  rand = runif(sim)
+  norm = qnorm(rand, mean, sd)
+  inverse_truncate_fun = norm[norm>trunc]
+  return(inverse_truncate_fun)
+}
+
+
+hist(inverse_cdf(100000, -2, -1, sqrt(10)), probability = T, xlim = c(-2.5, 15), xlab = "", ylim = c(0, .3), col = "lightgreen", main = "Simulated and theoretical truncated Normal")
+curve(dtnorm(x, -1, sqrt(10), lower = -2), add = T, col = "red", lwd = 2)
+
+```
+
+
+##### b) 
+
+
+```{r}
+
+
+AR <- function(sim, trunc, mean, sd){
+  
+  normal_trunc = function(x) (dtnorm(x, mean, sd, lower = trunc))
+  cauchy_cand = function(x) (dcauchy(x, mean, sd))
+  
+  ratio_fun = function(x) (normal_trunc(x)/cauchy_cand(x))
+  optimiz = optimize(ratio_fun, interval = c(-5, 5), maximum = T)
+  k=optimiz$maximum
+  
+  y = rcauchy(sim, mean, sd)
+  U = runif(sim)
+
+Y_accepted = y[U <= normal_trunc(y)/(k*cauchy_cand(y))]
+accepted = length(Y_accepted)
+acceptance_prob = accepted/sim
+
+
+return(list("acceptance_prob"=acceptance_prob, "est_distr"=Y_accepted))
+
+}
+
+```
+
+
+
+```{r}
+
+ar = AR(1000, -2, -1, sqrt(10))
+
+ar$acceptance_prob
+
+hist(ar$est_distr, probability = T, xlim = c(-2.5, 15), xlab = "", ylim = c(0, .3), col = "lightblue", main = "AR simulated and theoretical truncated Normal" )
+
+curve(dtnorm(x, -1, sqrt(10), lower = -2), add = T, col = "red", lwd = 2)
+
+```
+
